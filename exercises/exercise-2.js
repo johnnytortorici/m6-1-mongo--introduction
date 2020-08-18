@@ -59,4 +59,40 @@ const getGreeting = async (req, res) => {
   });
 };
 
-module.exports = { createGreeting, getGreeting };
+const getGreetings = async (req, res) => {
+  const start = req.query.start;
+  const limit = req.query.limit;
+
+  // create client
+  const client = await MongoClient(MONGO_URI, options);
+
+  // connect to client
+  await client.connect();
+
+  // connect to db server
+  const db = client.db("exercise_1");
+  console.log("Connected!");
+
+  const data = await db.collection("greetings").find().toArray();
+  if (data[0] !== undefined) {
+    let limitData = [];
+
+    if (start && limit) {
+      limitData = data.slice(start, Number(start) + Number(limit));
+    } else if (start) {
+      limitData = data.slice(start, Number(start) + 25);
+    } else if (limit) {
+      limitData = data.slice(0, limit);
+    } else {
+      limitData = data.slice(0, 25);
+    }
+    res.status(200).json({ data: limitData });
+  } else {
+    res.status(404).json({ error: "No greetings found." });
+  }
+
+  client.close();
+  console.log("Disconnected!");
+};
+
+module.exports = { createGreeting, getGreeting, getGreetings };
