@@ -37,4 +37,26 @@ const createGreeting = async (req, res) => {
   console.log("Disconnected!");
 };
 
-module.exports = { createGreeting };
+const getGreeting = async (req, res) => {
+  const _id = req.params._id;
+
+  // create client
+  const client = await MongoClient(MONGO_URI, options);
+
+  // connect to client
+  await client.connect();
+
+  // connect to db server
+  const db = client.db("exercise_1");
+  console.log("Connected!");
+
+  db.collection("greetings").findOne({ _id }, (err, result) => {
+    result
+      ? res.status(200).json({ status: 200, _id, data: result })
+      : res.status(404).json({ status: 404, _id, data: "Not Found" });
+    client.close();
+    console.log("Disconnected!");
+  });
+};
+
+module.exports = { createGreeting, getGreeting };
